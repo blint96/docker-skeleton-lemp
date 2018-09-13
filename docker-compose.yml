@@ -1,0 +1,44 @@
+version: '2'
+services:
+ mysql:
+     image: mysql:5.7
+     user: $UID
+     environment:
+       - MYSQL_ROOT_PASSWORD=password123
+       - MYSQL_DATABASE=yii
+       - MYSQL_USER=yii
+       - MYSQL_PASSWORD=abcd1234
+     ports:
+     - 3306
+ phpfpm:
+     build: .
+     #image: php-docker:latest
+     user: $UID
+     volumes:
+     - ./htdocs:/htdocs
+     links:
+     - mysql:db
+ nginx:
+     image: nginx:1.15.3-alpine
+     user: $UID
+     volumes:
+     - ./nginx:/etc/nginx/conf.d
+     - ./logs:/var/nginx/logs
+     - ./htdocs:/htdocs
+     ports:
+     - 80:80
+     - 443:443
+     links:
+     - phpfpm
+     command: /bin/sh -c "nginx -g 'daemon off;'"
+ phpmyadmin:
+     image: phpmyadmin/phpmyadmin:4.7
+     links:
+     - phpfpm
+     - mysql:db
+     ports:
+     - 8181:80
+     environment:
+       MYSQL_USERNAME: root
+       MYSQL_ROOT_PASSWORD: password123
+
